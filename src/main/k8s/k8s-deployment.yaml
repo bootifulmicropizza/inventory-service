@@ -1,0 +1,71 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: inventory-service
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+      - name: inventory-service
+        image: iancollington/bootifulmicropizza_inventory-service
+        imagePullPolicy: Always
+        env:
+          - name: BOOTIFUL_MICRO_PIZZA_ENV
+            value: prod
+          - name: BUILD_DATE
+            value: BUILD_DATE_PLACEHOLDER
+          - name: DB_URL
+            valueFrom:
+              secretKeyRef:
+                name: inventory-service
+                key: db.url
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: inventory-service
+                key: db.port
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: inventory-service
+                key: db.name
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: inventory-service
+                key: db.username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: inventory-service
+                key: db.password
+          - name: OAUTH2_PUBLIC_KEY
+            valueFrom:
+              secretKeyRef:
+                name: oauth2-resource
+                key: jwt.keyValue
+        resources:
+          requests:
+            cpu: "0.25"
+            memory: 1024Mi
+          limits:
+            cpu: "1"
+            memory: 1536Mi
+        ports:
+        - containerPort: 9004
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9004
+          initialDelaySeconds: 300
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9004
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
