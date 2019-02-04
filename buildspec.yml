@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay&
+      - sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - $(aws ecr get-login --no-include-email --region eu-west-1)
+      - docker pull $IMAGE_REPO/$MODULE_NAME:latest || true
+  build:
+    commands:
+      - mvn -Dbuild.number=${COMMIT_HASH} package
+      - docker build --cache-from $IMAGE_REPO/$MODULE_NAME:latest --tag $IMAGE_REPO/$MODULE_NAME:$COMMIT_HASH --tag $IMAGE_REPO/$MODULE_NAME:latest .
+      - docker push $IMAGE_REPO/$MODULE_NAME
+cache:
+  paths:
+    - '/root/.m2/**/*'
