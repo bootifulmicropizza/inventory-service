@@ -16,8 +16,8 @@ $ kubectl create secret generic inventory-service \
 ```
 
 
-kubectl create secret generic inventory-service \
-	--from-literal=db.url=192-168-128-100 \
+kubectl --namespace=pizza create secret generic inventory-service \
+	--from-literal=db.url=192.168.128.100 \
 	--from-literal=db.port=3306 \
 	--from-literal=db.name=pizza_inventory \
 	--from-literal=db.username=inventory-user \
